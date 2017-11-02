@@ -54,8 +54,8 @@ public class MainFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        discreteSlider = rootView.findViewById(R.id.discrete_slider);
-        tickMarkLabelsRelativeLayout = rootView.findViewById(R.id.tick_mark_labels_rl);
+        discreteSlider = (DiscreteSlider) rootView.findViewById(R.id.discrete_slider);
+        tickMarkLabelsRelativeLayout = (RelativeLayout) rootView.findViewById(R.id.tick_mark_labels_rl);
         return rootView;
     }
 
