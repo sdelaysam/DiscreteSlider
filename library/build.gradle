@@ -2,12 +2,12 @@ apply plugin: 'com.android.library'
 apply from: 'maven-push.gradle'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion "23.0.3"
+    compileSdkVersion 27
+    buildToolsVersion "26.0.2"
 
     defaultConfig {
-        minSdkVersion 14
-        targetSdkVersion 24
+        minSdkVersion 18
+        targetSdkVersion 27
         versionCode 9
         versionName "0.0.9"
 
@@ -27,7 +27,7 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:24.2.1'
-    compile 'com.android.support:design:24.2.1'
+    compile 'com.android.support:appcompat-v7:27.0.0'
+    compile 'com.android.support:design:27.0.0'
     testCompile 'junit:junit:4.12'
 }

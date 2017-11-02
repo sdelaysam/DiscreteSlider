@@ -2,13 +2,11 @@ package com.etiennelawlor.discreteslider.library.ui;
 
 import android.content.Context;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.widget.FrameLayout;
 
-import com.etiennelawlor.discreteslider.library.R;
 import com.etiennelawlor.discreteslider.library.utilities.DisplayUtility;
 
 /**
@@ -21,18 +19,19 @@ public class DiscreteSliderBackdrop extends FrameLayout {
     private Paint fillPaint = new Paint();
     private Paint strokePaint = new Paint();
     private int tickMarkCount = 0;
-    private float tickMarkRadius = 0.0F;
-    private float horizontalBarThickness = 0.0F;
+    private float tickMarkRadius = 0f;
+    private float horizontalBarThickness = 0f;
     private int backdropFillColor = 0;
     private int backdropStrokeColor = 0;
-    private float backdropStrokeWidth = 0.0F;
+    private float backdropStrokeWidth = 0f;
+    private float backdropLeftMargin = 0f;
+    private float backdropRightMargin = 0f;
     // The x-radius of the oval used to round the corners
-    private int xRadius = DisplayUtility.dp2px(getContext(), 8);
+    private int xRadius = DisplayUtility.dp2px(8);
     // The y-radius of the oval used to round the corners
-    private int yRadius = DisplayUtility.dp2px(getContext(), 8);
-    private int discreteSliderBackdropLeftMargin = DisplayUtility.dp2px(getContext(), 32);
-    private int discreteSliderBackdropRightMargin = DisplayUtility.dp2px(getContext(), 32);
+    private int yRadius = DisplayUtility.dp2px(8);
     // endregion
+    private RectF horizontalBarRect = new RectF();
 
     // region Constructors
     public DiscreteSliderBackdrop(Context context) {
@@ -52,55 +51,44 @@ public class DiscreteSliderBackdrop extends FrameLayout {
     // endregion
 
     @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-    }
-
-    @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        super.onLayout(changed, left, top, right, bottom);
-    }
-
-    @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
 
         int width = getWidth();
         int height = getHeight();
 
-        int interval = (width - (discreteSliderBackdropLeftMargin+discreteSliderBackdropRightMargin)) / (tickMarkCount-1);
+        int interval = (width - (int)(backdropLeftMargin + backdropRightMargin)) / (tickMarkCount-1);
 
         setUpFillPaint();
         setUpStrokePaint();
 
-        canvas.drawRoundRect(new RectF(discreteSliderBackdropLeftMargin,
-                        (height/2) - (horizontalBarThickness/2),
-                        width - discreteSliderBackdropRightMargin,
-                        (height/2) + (horizontalBarThickness/2)),
-                        xRadius,
-                        yRadius,
-                        fillPaint);
-
-        canvas.drawRoundRect(new RectF(discreteSliderBackdropLeftMargin,
-                        (height/2) - (horizontalBarThickness/2),
-                        width - discreteSliderBackdropRightMargin,
-                        (height/2) + (horizontalBarThickness/2)),
-                        xRadius,
-                        yRadius,
-                        strokePaint);
-
-        for(int i=0; i<tickMarkCount; i++){
-            canvas.drawCircle(discreteSliderBackdropLeftMargin + (i * interval), height/2, tickMarkRadius, fillPaint);
-            canvas.drawCircle(discreteSliderBackdropLeftMargin + (i * interval), height/2, tickMarkRadius, strokePaint);
+        if (horizontalBarThickness > 0f) {
+            horizontalBarRect.set(backdropLeftMargin,
+                    (height/2) - (horizontalBarThickness/2),
+                    width - backdropRightMargin,
+                    (height/2) + (horizontalBarThickness/2));
+            canvas.drawRoundRect(horizontalBarRect, xRadius, yRadius, fillPaint);
+            canvas.drawRoundRect(horizontalBarRect, xRadius, yRadius, strokePaint);
+        } else {
+            canvas.drawLine(backdropLeftMargin,
+                    (height/2) - 0.5f,
+                    width - backdropRightMargin,
+                    (height/2) + 0.5f,
+                    strokePaint);
         }
 
-        canvas.drawRoundRect(new RectF(discreteSliderBackdropLeftMargin,
-                        (height/2) - ((horizontalBarThickness/2)-DisplayUtility.dp2px(getContext(), 1)),
-                        width - discreteSliderBackdropRightMargin,
-                        (height/2) + ((horizontalBarThickness/2)-DisplayUtility.dp2px(getContext(), 1))),
-                        xRadius,
-                        yRadius,
-                        fillPaint);
+        for(int i=0; i<tickMarkCount; i++){
+            canvas.drawCircle(backdropLeftMargin + (i * interval), height/2, tickMarkRadius, fillPaint);
+            canvas.drawCircle(backdropLeftMargin + (i * interval), height/2, tickMarkRadius, strokePaint);
+        }
+
+        if (horizontalBarThickness > 0f) {
+            horizontalBarRect.set(backdropLeftMargin,
+                    (height/2) - ((horizontalBarThickness/2)-DisplayUtility.dp2px(1)),
+                    width - backdropRightMargin,
+                    (height/2) + ((horizontalBarThickness/2)-DisplayUtility.dp2px(1)));
+            canvas.drawRoundRect(horizontalBarRect, xRadius, yRadius, fillPaint);
+        }
     }
 
     // region Helper Methods
@@ -125,11 +113,11 @@ public class DiscreteSliderBackdrop extends FrameLayout {
     }
 
     public void setTickMarkRadius(float tickMarkRadius) {
-        this.tickMarkRadius = tickMarkRadius < 2.0F ? 2.0F : tickMarkRadius;
+        this.tickMarkRadius = tickMarkRadius < 2.0f ? 2.0f : tickMarkRadius;
     }
 
     public void setHorizontalBarThickness(float horizontalBarThickness) {
-        this.horizontalBarThickness = horizontalBarThickness < 2.0F ? 2.0F : horizontalBarThickness;
+        this.horizontalBarThickness = horizontalBarThickness < 0.0f ? 0.0f : horizontalBarThickness;
     }
 
     public void setBackdropFillColor(int backdropFillColor) {
@@ -141,7 +129,16 @@ public class DiscreteSliderBackdrop extends FrameLayout {
     }
 
     public void setBackdropStrokeWidth(float backdropStrokeWidth) {
-        this.backdropStrokeWidth = backdropStrokeWidth < 1.0F ? 1.0F : backdropStrokeWidth;
+        this.backdropStrokeWidth = backdropStrokeWidth < 1.0f ? 1.0f : backdropStrokeWidth;
     }
+
+    public void setBackdropLeftMargin(float backdropLeftMargin) {
+        this.backdropLeftMargin = backdropLeftMargin;
+    }
+
+    public void setBackdropRightMargin(float backdropRightMargin) {
+        this.backdropRightMargin = backdropRightMargin;
+    }
+
     // endregion
 }

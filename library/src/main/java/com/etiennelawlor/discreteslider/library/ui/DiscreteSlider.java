@@ -9,7 +9,6 @@ import android.view.View;
 import android.widget.FrameLayout;
 
 import com.etiennelawlor.discreteslider.library.R;
-import com.etiennelawlor.discreteslider.library.utilities.DisplayUtility;
 
 /**
  * Created by etiennelawlor on 7/4/16.
@@ -25,22 +24,22 @@ public class DiscreteSlider extends FrameLayout {
     // region Member Variables
     private int tickMarkCount;
     private float tickMarkRadius;
-    private int position;
     private float horizontalBarThickness;
     private int backdropFillColor;
     private int backdropStrokeColor;
     private float backdropStrokeWidth;
+    private float backdropLeftMargin;
+    private float backdropRightMargin;
     private Drawable thumb;
     private Drawable progressDrawable;
     private OnDiscreteSliderChangeListener onDiscreteSliderChangeListener;
-    private int discreteSeekBarLeftPadding = DisplayUtility.dp2px(getContext(), 32);
-    private int discreteSeekBarRightPadding = DisplayUtility.dp2px(getContext(), 32);
 
     // endregion
 
     // region Interfaces
     public interface OnDiscreteSliderChangeListener {
         void onPositionChanged(int position);
+        void onDragPositionChanged(int position);
     }
     // endregion
 
@@ -67,23 +66,24 @@ public class DiscreteSlider extends FrameLayout {
                 attrs,
                 R.styleable.DiscreteSlider);
 
+        View view = inflate(context, R.layout.discrete_slider, this);
+        discreteSliderBackdrop = (DiscreteSliderBackdrop)view.findViewById(R.id.discrete_slider_backdrop);
+        discreteSeekBar = (DiscreteSeekBar)view.findViewById(R.id.discrete_seek_bar);
+
         try {
             tickMarkCount = attributeArray.getInteger(R.styleable.DiscreteSlider_tickMarkCount, 5);
             tickMarkRadius = attributeArray.getDimension(R.styleable.DiscreteSlider_tickMarkRadius, 8);
-            position = attributeArray.getInteger(R.styleable.DiscreteSlider_position, 0);
             horizontalBarThickness = attributeArray.getDimension(R.styleable.DiscreteSlider_horizontalBarThickness, 4);
             backdropFillColor = attributeArray.getColor(R.styleable.DiscreteSlider_backdropFillColor, Color.GRAY);
             backdropStrokeColor = attributeArray.getColor(R.styleable.DiscreteSlider_backdropStrokeColor, Color.GRAY);
             backdropStrokeWidth = attributeArray.getDimension(R.styleable.DiscreteSlider_backdropStrokeWidth, 1);
+            backdropLeftMargin = attributeArray.getDimension(R.styleable.DiscreteSlider_backdropLeftMargin, 8);
+            backdropRightMargin = attributeArray.getDimension(R.styleable.DiscreteSlider_backdropRightMargin, 8);
             thumb = attributeArray.getDrawable(R.styleable.DiscreteSlider_thumb);
             progressDrawable = attributeArray.getDrawable(R.styleable.DiscreteSlider_progressDrawable);
         } finally {
             attributeArray.recycle();
         }
-
-        View view = inflate(context, R.layout.discrete_slider, this);
-        discreteSliderBackdrop = (DiscreteSliderBackdrop)view.findViewById(R.id.discrete_slider_backdrop);
-        discreteSeekBar = (DiscreteSeekBar)view.findViewById(R.id.discrete_seek_bar);
 
         setTickMarkCount(tickMarkCount);
         setTickMarkRadius(tickMarkRadius);
@@ -91,11 +91,10 @@ public class DiscreteSlider extends FrameLayout {
         setBackdropFillColor(backdropFillColor);
         setBackdropStrokeColor(backdropStrokeColor);
         setBackdropStrokeWidth(backdropStrokeWidth);
-        setPosition(position);
+        setBackdropLeftMargin(backdropLeftMargin);
+        setBackdropRightMargin(backdropRightMargin);
         setThumb(thumb);
         setProgressDrawable(progressDrawable);
-
-        discreteSeekBar.setPadding(discreteSeekBarLeftPadding,0,discreteSeekBarRightPadding,0);
 
         discreteSeekBar.setOnDiscreteSeekBarChangeListener(new DiscreteSeekBar.OnDiscreteSeekBarChangeListener() {
             @Override
@@ -103,6 +102,13 @@ public class DiscreteSlider extends FrameLayout {
                 if(onDiscreteSliderChangeListener != null){
                     onDiscreteSliderChangeListener.onPositionChanged(position);
                     setPosition(position);
+                }
+            }
+
+            @Override
+            public void onDragPositionChanged(int position) {
+                if(onDiscreteSliderChangeListener != null) {
+                    onDiscreteSliderChangeListener.onDragPositionChanged(position);
                 }
             }
         });
@@ -124,13 +130,11 @@ public class DiscreteSlider extends FrameLayout {
 
     public void setPosition(int position) {
         if(position<0){
-            this.position = 0;
+            position = 0;
         } else if(position>tickMarkCount-1){
-            this.position = tickMarkCount-1;
-        } else {
-            this.position = position;
+            position = tickMarkCount-1;
         }
-        discreteSeekBar.setPosition(this.position);
+        discreteSeekBar.setPosition(position);
     }
 
     public void setHorizontalBarThickness(float horizontalBarThickness){
@@ -150,6 +154,18 @@ public class DiscreteSlider extends FrameLayout {
 
     public void setBackdropStrokeWidth(float backdropStrokeWidth){
         discreteSliderBackdrop.setBackdropStrokeWidth(backdropStrokeWidth);
+        discreteSliderBackdrop.invalidate();
+    }
+
+    public void setBackdropLeftMargin(float backdropLeftMargin){
+        discreteSeekBar.setPadding((int)backdropLeftMargin,0, (int)backdropRightMargin,0);
+        discreteSliderBackdrop.setBackdropLeftMargin(backdropLeftMargin);
+        discreteSliderBackdrop.invalidate();
+    }
+
+    public void setBackdropRightMargin(float backdropRightMargin){
+        discreteSeekBar.setPadding((int)backdropLeftMargin,0, (int)backdropRightMargin,0);
+        discreteSliderBackdrop.setBackdropRightMargin(backdropRightMargin);
         discreteSliderBackdrop.invalidate();
     }
 
@@ -180,7 +196,19 @@ public class DiscreteSlider extends FrameLayout {
     }
 
     public int getPosition() {
-        return position;
+        return discreteSeekBar.getPosition();
+    }
+
+    public float getBackdropLeftMargin() {
+        return backdropLeftMargin;
+    }
+
+    public float getBackdropRightMargin() {
+        return backdropRightMargin;
+    }
+
+    public DiscreteSeekBar getSeekbar() {
+        return discreteSeekBar;
     }
 
     // endregion

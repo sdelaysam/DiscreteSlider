@@ -9,7 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.widget.LinearLayout;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -17,9 +17,7 @@ import com.etiennelawlor.discreteslider.R;
 import com.etiennelawlor.discreteslider.library.ui.DiscreteSlider;
 import com.etiennelawlor.discreteslider.library.utilities.DisplayUtility;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
-import butterknife.OnClick;
+import java.util.Objects;
 
 /**
  * Created by etiennelawlor on 7/1/16.
@@ -28,11 +26,11 @@ import butterknife.OnClick;
 public class MainFragment extends Fragment {
 
     // region Views
-    @Bind(R.id.discrete_slider)
     DiscreteSlider discreteSlider;
-    @Bind(R.id.tick_mark_labels_rl)
     RelativeLayout tickMarkLabelsRelativeLayout;
     // endregion
+    private String TAG_SELECTED;
+    private String TAG_NOT_SELECTED;
 
     // region Constructors
     public MainFragment() {
@@ -56,8 +54,8 @@ public class MainFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-        ButterKnife.bind(this, rootView);
-
+        discreteSlider = rootView.findViewById(R.id.discrete_slider);
+        tickMarkLabelsRelativeLayout = rootView.findViewById(R.id.tick_mark_labels_rl);
         return rootView;
     }
 
@@ -79,13 +77,16 @@ public class MainFragment extends Fragment {
         discreteSlider.setOnDiscreteSliderChangeListener(new DiscreteSlider.OnDiscreteSliderChangeListener() {
             @Override
             public void onPositionChanged(int position) {
+                // position selected
+            }
+
+            @Override
+            public void onDragPositionChanged(int position) {
+                Log.d("WTF", "Drag position changed: " + position);
                 int childCount = tickMarkLabelsRelativeLayout.getChildCount();
                 for(int i= 0; i<childCount; i++){
                     TextView tv = (TextView) tickMarkLabelsRelativeLayout.getChildAt(i);
-                    if(i == position)
-                        tv.setTextColor(getResources().getColor(R.color.colorPrimary));
-                    else
-                        tv.setTextColor(getResources().getColor(R.color.grey_400));
+                    showSelected(tv, i == position, true);
                 }
             }
         });
@@ -100,55 +101,60 @@ public class MainFragment extends Fragment {
         });
     }
 
-    @Override
-    public void onDestroyView() {
-        super.onDestroyView();
-        ButterKnife.unbind(this);
-    }
     // endregion
 
     // region Helper Methods
 
     private void addTickMarkTextLabels(){
-        int tickMarkCount = discreteSlider.getTickMarkCount();
-        float tickMarkRadius = discreteSlider.getTickMarkRadius();
         int width = tickMarkLabelsRelativeLayout.getMeasuredWidth();
+        int tickMarkCount = discreteSlider.getTickMarkCount();
 
-        int discreteSliderBackdropLeftMargin = DisplayUtility.dp2px(getContext(), 32);
-        int discreteSliderBackdropRightMargin = DisplayUtility.dp2px(getContext(), 32);
-        float firstTickMarkRadius = tickMarkRadius;
-        float lastTickMarkRadius = tickMarkRadius;
-        int interval = (width - (discreteSliderBackdropLeftMargin+discreteSliderBackdropRightMargin) - ((int)(firstTickMarkRadius+lastTickMarkRadius)) )
-                / (tickMarkCount-1);
+        float leftMargin = discreteSlider.getBackdropLeftMargin();
+        float rightMargin = discreteSlider.getBackdropRightMargin();
+        float interval = (width - (leftMargin + rightMargin)) / (tickMarkCount - 1);
+
+        int labelWidth = (int) Math.min(Math.min(interval, leftMargin*2), rightMargin*2);
+        int labelPadding = DisplayUtility.dp2px(2);
+        labelWidth -= 2*labelPadding;
 
         String[] tickMarkLabels = {"$", "$$", "$$$", "$$$$", "$$$$$"};
-        int tickMarkLabelWidth = DisplayUtility.dp2px(getContext(), 40);
-
         for(int i=0; i<tickMarkCount; i++) {
             TextView tv = new TextView(getContext());
-
             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
-                    tickMarkLabelWidth, RelativeLayout.LayoutParams.WRAP_CONTENT);
-
+                    labelWidth, RelativeLayout.LayoutParams.WRAP_CONTENT);
+            tv.setLayoutParams(layoutParams);
             tv.setText(tickMarkLabels[i]);
             tv.setGravity(Gravity.CENTER);
-            if(i==discreteSlider.getPosition())
-                tv.setTextColor(getResources().getColor(R.color.colorPrimary));
-            else
-                tv.setTextColor(getResources().getColor(R.color.grey_400));
-
-//                    tv.setBackgroundColor(getResources().getColor(android.R.color.holo_blue_dark));
-
-            int left = discreteSliderBackdropLeftMargin + (int)firstTickMarkRadius + (i * interval) - (tickMarkLabelWidth/2);
-
-            layoutParams.setMargins(left,
-                    0,
-                    0,
-                    0);
-            tv.setLayoutParams(layoutParams);
-
+            tv.setX(leftMargin + (i * interval) - labelWidth/2);
+            showSelected(tv, i == discreteSlider.getPosition(), false);
             tickMarkLabelsRelativeLayout.addView(tv);
         }
     }
     // endregion
+
+    private void showSelected(TextView textView, boolean selected, boolean animate) {
+        if (textView.getTag() != null) {
+            boolean oldSelected = textView.getTag().equals(TAG_SELECTED);
+            if (oldSelected == selected) {
+                return;
+            }
+        }
+        if (selected) {
+            textView.setTag(TAG_SELECTED);
+            textView.setTextColor(getResources().getColor(R.color.colorPrimary));
+            if (animate) {
+                textView.animate().y(DisplayUtility.dp2px(8)).setInterpolator(new DecelerateInterpolator());
+            } else {
+                textView.setY(DisplayUtility.dp2px(8));
+            }
+        } else {
+            textView.setTag(TAG_NOT_SELECTED);
+            textView.setTextColor(getResources().getColor(R.color.grey_400));
+            if (animate) {
+                textView.animate().y(DisplayUtility.dp2px(22)).setInterpolator(new DecelerateInterpolator());
+            } else {
+                textView.setY(DisplayUtility.dp2px(22));
+            }
+        }
+    }
 }

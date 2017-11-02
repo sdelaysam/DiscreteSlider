@@ -4,7 +4,6 @@ import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.support.v7.widget.AppCompatSeekBar;
 import android.util.AttributeSet;
-import android.view.View;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.SeekBar;
 
@@ -22,7 +21,6 @@ public class DiscreteSeekBar extends AppCompatSeekBar {
     // region Member Variables
     private int tickMarkCount = 0;
     private float stepSize = 0.0f;
-    private int superOldProgress = 0;
     // This counter detects if the user clicked the SeekBar or dragged the SeekBar
     // If this counter exceeds 1 then the user dragged the SeekBar otherwise
     // the user clicked the SeekBar
@@ -33,6 +31,7 @@ public class DiscreteSeekBar extends AppCompatSeekBar {
     // region Interfaces
     public interface OnDiscreteSeekBarChangeListener {
         void onPositionChanged(int position);
+        void onDragPositionChanged(int position);
     }
     // endregion
 
@@ -56,26 +55,38 @@ public class DiscreteSeekBar extends AppCompatSeekBar {
     // region Helper Methods
     private void init(Context context, AttributeSet attrs){
         setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+
+            private int prevPosition = 0;
+            private int prevProgress = 0;
+            private int prevDragPosition = 0;
+
             @Override
             public void onStartTrackingTouch(SeekBar seekBar) {
-                superOldProgress = seekBar.getProgress();
+                prevPosition = getPosition();
+                prevDragPosition = prevPosition;
+                prevProgress = seekBar.getProgress();
             }
 
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                if(fromUser)
+                if(fromUser) {
                     fromUserCount+=1;
+
+                    if (onDiscreteSeekBarChangeListener != null) {
+                        int newProgress = getStepProgress(progress);
+                        int newPosition = newProgress/MULTIPLIER;
+                        if (prevDragPosition != newPosition) {
+                            prevDragPosition = newPosition;
+                            onDiscreteSeekBarChangeListener.onDragPositionChanged(newPosition);
+                        }
+                    }
+                }
             }
 
             @Override
             public void onStopTrackingTouch(final SeekBar seekBar) {
                 int oldProgress = seekBar.getProgress();
-                final int newProgress;
-                if((oldProgress % stepSize) >= stepSize/2F){
-                    newProgress = (int)(((oldProgress/(int)stepSize)+1)*stepSize);
-                } else {
-                    newProgress = (int)(((oldProgress/(int)stepSize))*stepSize);
-                }
+                int newProgress = getStepProgress(oldProgress);
 
                 if(fromUserCount>1){ // SeekBar Dragged
                     ObjectAnimator animation = ObjectAnimator.ofInt(seekBar, PROGRESS_PROPERTY, oldProgress, newProgress);
@@ -83,15 +94,19 @@ public class DiscreteSeekBar extends AppCompatSeekBar {
                     animation.setInterpolator(new DecelerateInterpolator());
                     animation.start();
                 } else { // SeekBar Clicked
-                    ObjectAnimator animation = ObjectAnimator.ofInt(seekBar, PROGRESS_PROPERTY, superOldProgress, newProgress);
+                    ObjectAnimator animation = ObjectAnimator.ofInt(seekBar, PROGRESS_PROPERTY, prevProgress, newProgress);
                     animation.setDuration(getResources().getInteger(android.R.integer.config_mediumAnimTime));
                     animation.setInterpolator(new DecelerateInterpolator());
                     animation.start();
                 }
 
                 fromUserCount = 0;
-                if(onDiscreteSeekBarChangeListener != null){
-                    onDiscreteSeekBarChangeListener.onPositionChanged(newProgress/MULTIPLIER);
+                int newPosition = newProgress/MULTIPLIER;
+                if (prevPosition != newPosition) {
+                    prevPosition = newPosition;
+                    if (onDiscreteSeekBarChangeListener != null) {
+                        onDiscreteSeekBarChangeListener.onPositionChanged(newPosition);
+                    }
                 }
             }
         });
@@ -108,9 +123,21 @@ public class DiscreteSeekBar extends AppCompatSeekBar {
     }
 
     public void setPosition(int position){
-        this.setProgress(position*(int)stepSize);
+        setProgress(position*(int)stepSize);
+    }
+
+    public int getPosition() {
+        return getStepProgress(getProgress()) / MULTIPLIER;
     }
     // endregion
+
+    private int getStepProgress(int progress) {
+        if((progress % stepSize) >= stepSize/2F){
+            return (int)(((progress/(int)stepSize)+1)*stepSize);
+        } else {
+            return (int)(((progress/(int)stepSize))*stepSize);
+        }
+    }
 
 
 }

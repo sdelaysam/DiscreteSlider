@@ -6,37 +6,34 @@
     android:layout_height="match_parent"
     android:background="@color/grey_500">
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:layout_height="80dp"
         android:layout_gravity="bottom"
-        android:background="@color/grey_100">
-
-        <RelativeLayout
-            android:id="@+id/tick_mark_labels_rl"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingTop="12dp"/>
+        android:background="@android:color/white">
 
         <com.etiennelawlor.discreteslider.library.ui.DiscreteSlider
             android:id="@+id/discrete_slider"
             android:layout_width="match_parent"
             android:layout_height="56dp"
-            android:layout_marginBottom="4dp"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
-            android:background="@color/grey_100"
-            app:backdropFillColor="@color/grey_200"
-            app:backdropStrokeColor="@color/grey_300"
+            android:layout_gravity="bottom"
+            android:background="@android:color/white"
+            app:backdropFillColor="@android:color/white"
+            app:backdropStrokeColor="#C4C6CA"
             app:backdropStrokeWidth="1dp"
-            app:horizontalBarThickness="4dp"
+            app:backdropLeftMargin="32dp"
+            app:backdropRightMargin="32dp"
+            app:horizontalBarThickness="0dp"
             app:tickMarkCount="5"
-            app:tickMarkRadius="8dp"
-            app:position="1"
+            app:tickMarkRadius="6dp"
             app:thumb="@drawable/thumb"
             app:progressDrawable="@drawable/transparent_progress_drawable"/>
 
-    </LinearLayout>
+        <RelativeLayout
+            android:id="@+id/tick_mark_labels_rl"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+    </FrameLayout>
 
 </FrameLayout>
