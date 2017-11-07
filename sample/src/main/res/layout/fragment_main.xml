@@ -21,8 +21,6 @@
             app:backdropFillColor="@android:color/white"
             app:backdropStrokeColor="#C4C6CA"
             app:backdropStrokeWidth="1dp"
-            app:backdropLeftMargin="32dp"
-            app:backdropRightMargin="32dp"
             app:horizontalBarThickness="0dp"
             app:tickMarkCount="5"
             app:tickMarkRadius="6dp"

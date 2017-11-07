@@ -77,8 +77,8 @@ public class DiscreteSlider extends FrameLayout {
             backdropFillColor = attributeArray.getColor(R.styleable.DiscreteSlider_backdropFillColor, Color.GRAY);
             backdropStrokeColor = attributeArray.getColor(R.styleable.DiscreteSlider_backdropStrokeColor, Color.GRAY);
             backdropStrokeWidth = attributeArray.getDimension(R.styleable.DiscreteSlider_backdropStrokeWidth, 1);
-            backdropLeftMargin = attributeArray.getDimension(R.styleable.DiscreteSlider_backdropLeftMargin, 8);
-            backdropRightMargin = attributeArray.getDimension(R.styleable.DiscreteSlider_backdropRightMargin, 8);
+            backdropLeftMargin = attributeArray.getDimension(R.styleable.DiscreteSlider_backdropLeftMargin, 0);
+            backdropRightMargin = attributeArray.getDimension(R.styleable.DiscreteSlider_backdropRightMargin, 0);
             thumb = attributeArray.getDrawable(R.styleable.DiscreteSlider_thumb);
             progressDrawable = attributeArray.getDrawable(R.styleable.DiscreteSlider_progressDrawable);
         } finally {
@@ -158,12 +158,14 @@ public class DiscreteSlider extends FrameLayout {
     }
 
     public void setBackdropLeftMargin(float backdropLeftMargin){
+        this.backdropLeftMargin = backdropLeftMargin;
         discreteSeekBar.setPadding((int)backdropLeftMargin,0, (int)backdropRightMargin,0);
         discreteSliderBackdrop.setBackdropLeftMargin(backdropLeftMargin);
         discreteSliderBackdrop.invalidate();
     }
 
     public void setBackdropRightMargin(float backdropRightMargin){
+        this.backdropRightMargin = backdropRightMargin;
         discreteSeekBar.setPadding((int)backdropLeftMargin,0, (int)backdropRightMargin,0);
         discreteSliderBackdrop.setBackdropRightMargin(backdropRightMargin);
         discreteSliderBackdrop.invalidate();

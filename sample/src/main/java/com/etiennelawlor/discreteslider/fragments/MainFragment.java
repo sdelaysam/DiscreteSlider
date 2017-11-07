@@ -29,8 +29,8 @@ public class MainFragment extends Fragment {
     DiscreteSlider discreteSlider;
     RelativeLayout tickMarkLabelsRelativeLayout;
     // endregion
-    private String TAG_SELECTED;
-    private String TAG_NOT_SELECTED;
+    private String TAG_SELECTED = "selected";
+    private String TAG_NOT_SELECTED = "not selected";
 
     // region Constructors
     public MainFragment() {
@@ -109,11 +109,13 @@ public class MainFragment extends Fragment {
         int width = tickMarkLabelsRelativeLayout.getMeasuredWidth();
         int tickMarkCount = discreteSlider.getTickMarkCount();
 
-        float leftMargin = discreteSlider.getBackdropLeftMargin();
-        float rightMargin = discreteSlider.getBackdropRightMargin();
-        float interval = (width - (leftMargin + rightMargin)) / (tickMarkCount - 1);
+        int labelPrefWidth = width / tickMarkCount;
+        float sideMargins = (float) labelPrefWidth / 2;
+        discreteSlider.setBackdropLeftMargin(sideMargins);
+        discreteSlider.setBackdropRightMargin(sideMargins);
 
-        int labelWidth = (int) Math.min(Math.min(interval, leftMargin*2), rightMargin*2);
+        float interval = (width - labelPrefWidth) / (tickMarkCount - 1);
+        int labelWidth = labelPrefWidth;
         int labelPadding = DisplayUtility.dp2px(2);
         labelWidth -= 2*labelPadding;
 
@@ -123,9 +125,10 @@ public class MainFragment extends Fragment {
             RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(
                     labelWidth, RelativeLayout.LayoutParams.WRAP_CONTENT);
             tv.setLayoutParams(layoutParams);
+            tv.setBackgroundColor(0xaacccccc);
             tv.setText(tickMarkLabels[i]);
             tv.setGravity(Gravity.CENTER);
-            tv.setX(leftMargin + (i * interval) - labelWidth/2);
+            tv.setX(sideMargins + (i * interval) - labelWidth/2);
             showSelected(tv, i == discreteSlider.getPosition(), false);
             tickMarkLabelsRelativeLayout.addView(tv);
         }
